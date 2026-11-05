@@ -18,7 +18,18 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, token, isLoading } = useAuth();
+
+  // Navigate only after the token is committed to React state.
+  // Navigating immediately after signIn() causes AuthGuard to see token=null
+  // (the state update from onAuthStateChange hasn't been applied yet) and
+  // redirects the user back to /login — a race condition that consistently
+  // reproduces in production but not in webpack dev mode.
+  React.useEffect(() => {
+    if (!isLoading && token) {
+      router.replace("/dashboard");
+    }
+  }, [isLoading, token, router]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -28,9 +39,8 @@ export default function LoginPage() {
     if (authError) {
       setError(authError);
       setIsSubmitting(false);
-    } else {
-      router.replace("/dashboard");
     }
+    // Navigation is handled by the useEffect above once token is set.
   };
 
   return (
