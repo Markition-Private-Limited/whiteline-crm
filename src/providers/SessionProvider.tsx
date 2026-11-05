@@ -136,13 +136,29 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         await hydrate(session.access_token, session.user.email ?? "");
-      } else {
+      } else if (event === "SIGNED_OUT") {
+        // Explicit sign-out: clear everything immediately.
         void syncServerSession(null);
         setToken(null);
         setUserId(null);
         setAppRole(null);
         setEmail("");
         setDisplayName("Workspace User");
+      } else {
+        // TOKEN_REFRESH_FAILED or similar transient event — re-check the session
+        // before wiping state so a Vercel cold-start latency spike doesn't log
+        // the user out.
+        const { data: { session: current } } = await supabase.auth.getSession();
+        if (current) {
+          await hydrate(current.access_token, current.user.email ?? "");
+        } else {
+          void syncServerSession(null);
+          setToken(null);
+          setUserId(null);
+          setAppRole(null);
+          setEmail("");
+          setDisplayName("Workspace User");
+        }
       }
     });
 

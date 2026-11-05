@@ -38,15 +38,22 @@ export default function DashboardPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    if (!token || !appRole) return;
+    if (!token) return;
+    // If appRole is not yet known (still fetching from /api/auth/me), show the
+    // page without data rather than hanging on the loading skeleton forever.
+    if (!appRole) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const fetches: Promise<unknown>[] = [
       apiGet("/api/tasks", token).catch(() => []),
       (appRole === "admin" || appRole === "bd_executive") ? apiGet("/api/prospects", token).catch(() => []) : Promise.resolve([]),
     ];
     Promise.all(fetches)
       .then(([ts, ps]) => {
-        setTasks(ts as Task[]);
-        setProspects(ps as Prospect[]);
+        setTasks(Array.isArray(ts) ? ts as Task[] : []);
+        setProspects(Array.isArray(ps) ? ps as Prospect[] : []);
       })
       .finally(() => setLoading(false));
   }, [token, appRole]);
