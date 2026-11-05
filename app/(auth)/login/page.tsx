@@ -41,20 +41,20 @@ export default function LoginPage() {
           <div className="relative mx-auto flex h-full w-full max-w-xl flex-col">
             <div className="inline-flex items-center gap-3">
               <Image
-                src="/brand/markition-logo-white.svg"
-                alt="Markition"
-                width={246}
-                height={50}
+                src="/brand/whiteline-logo-white.svg"
+                alt="White Line"
+                width={320}
+                height={66}
                 priority
-                className="h-10 w-auto"
+                className="h-12 w-auto"
               />
             </div>
 
             <div className="mt-16 space-y-4">
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/65">Welcome</p>
-              <h1 className="max-w-lg text-5xl font-semibold leading-tight text-white">Welcome to Markition CRM</h1>
-              <p className="text-xl font-semibold text-white/90">From Code to Conversion</p>
-              <p className="max-w-lg text-base text-white/80">Markition is your one-stop digital solutions provider.</p>
+              <h1 className="max-w-lg text-5xl font-semibold leading-tight text-white">Welcome to White Line CRM</h1>
+              <p className="text-xl font-semibold text-white/90">Premium. Reliable. Connected.</p>
+              <p className="max-w-lg text-base text-white/80">White Line brings together premium chauffeur services and modern technology.</p>
             </div>
 
             <div className="mt-10 rounded-3xl border border-white/20 bg-white/10 p-6 shadow-lg shadow-black/20 backdrop-blur-md">
@@ -87,7 +87,7 @@ export default function LoginPage() {
         <section className="flex items-start justify-center px-5 py-10 sm:px-10 lg:items-center">
           <div className="w-full max-w-md space-y-7">
             <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Markition CRM</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">White Line CRM</p>
               <h2 className="text-3xl font-semibold text-foreground">Welcome Back</h2>
               <p className="text-sm text-muted-foreground">Sign in to continue to your workspace.</p>
             </div>
@@ -101,7 +101,7 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@markition.com"
+                    placeholder="you@whiteline.com"
                     className="pl-9"
                     required
                   />

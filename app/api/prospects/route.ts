@@ -136,6 +136,31 @@ export async function POST(request: Request) {
     }
   }
 
+  // ── Resolve company_id ────────────────────────────────────────────────
+  // The form sends company_name as free text with no company_id FK.
+  // Find an existing company by name, or create one, so company_id is
+  // always populated. The clients trigger depends on this being non-null.
+  let resolvedCompanyId: string | null = company_id ?? null
+  if (!resolvedCompanyId && resolvedCompanyName) {
+    const { data: existingCo } = await adminClient
+      .from('companies')
+      .select('id')
+      .ilike('name', resolvedCompanyName)
+      .limit(1)
+      .single()
+
+    if (existingCo) {
+      resolvedCompanyId = (existingCo as { id: string }).id
+    } else {
+      const { data: newCo } = await adminClient
+        .from('companies')
+        .insert({ name: resolvedCompanyName, slug: resolvedCompanyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).slice(2, 6) })
+        .select('id')
+        .single()
+      if (newCo) resolvedCompanyId = (newCo as { id: string }).id
+    }
+  }
+
   // ── Resolve stage ──────────────────────────────────────────────────────
   let resolvedStageId = stage_id ?? null
   let resolvedProbability = probability ?? null
@@ -158,7 +183,7 @@ export async function POST(request: Request) {
   const { data, error: dbErr } = await adminClient
     .from('prospects')
     .insert({
-      company_id:          company_id ?? null,
+      company_id:          resolvedCompanyId,
       company_name:        resolvedCompanyName,
       industry:            industry    ?? null,
       country:             country     ?? null,

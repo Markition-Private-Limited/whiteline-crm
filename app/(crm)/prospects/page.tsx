@@ -100,11 +100,17 @@ function ServiceCategoryCombobox({
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canCreate && query.trim() && !exactMatch) {
+              e.preventDefault();
+              handleCreate();
+            }
+          }}
           placeholder={canCreate ? "Search or type to create…" : "Search categories…"}
           className="h-10 w-full rounded-[14px] border border-border bg-background px-3 text-sm focus:border-accent focus:outline-none"
         />
       )}
-      {!value && open && (filtered.length > 0 || (canCreate && query && !exactMatch)) && (
+      {!value && open && (
         <div className="absolute z-10 mt-1 w-full rounded-[14px] border border-border bg-surface shadow-xl shadow-black/10">
           <div className="p-1">
             {filtered.map((cat) => (
@@ -144,6 +150,12 @@ function ServiceCategoryCombobox({
                 <Plus className="h-3.5 w-3.5" />
                 {creating ? "Creating…" : `Create "${query}"`}
               </button>
+            )}
+            {canCreate && !query && filtered.length === 0 && (
+              <p className="px-3 py-2 text-xs text-muted-foreground">Type a service name to create one</p>
+            )}
+            {!canCreate && filtered.length === 0 && (
+              <p className="px-3 py-2 text-xs text-muted-foreground">No categories found</p>
             )}
           </div>
         </div>
@@ -513,8 +525,8 @@ export default function ProspectsPage() {
       )}
 
       {/* New Prospect modal */}
-      <Modal open={showModal} title="New Prospect" onClose={() => { setShowModal(false); resetForm(); }}>
-        <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+      <Modal open={showModal} title="New Prospect" size="2xl" onClose={() => { setShowModal(false); resetForm(); }}>
+        <div className="space-y-4 max-h-[75vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {/* Company info */}
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Company</p>
           <div className="grid grid-cols-2 gap-3">
@@ -561,7 +573,7 @@ export default function ProspectsPage() {
               <ServiceCategoryCombobox
                 value={form.service_required}
                 categories={categories}
-                canCreate={appRole === "admin"}
+                canCreate={appRole === "admin" || appRole === "bd_manager" || appRole === "bd_executive"}
                 onChange={(v) => setField("service_required", v)}
                 onCreate={handleCreateCategory}
                 onDelete={handleDeleteCategory}

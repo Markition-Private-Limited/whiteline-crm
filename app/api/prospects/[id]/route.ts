@@ -131,8 +131,32 @@ export async function PUT(
       }
       update.close_date    = closeDate
       update.final_amount  = finalAmount
-      // Also update legacy status for clients trigger
       update.status = 'closed_won'
+
+      // Fallback: prospects created before the creation-time company fix may
+      // still have company_id = null. Resolve it now so the DB trigger fires.
+      const existingCompanyId = (current as { company_id?: string | null }).company_id
+      if (!existingCompanyId) {
+        const companyName = (current as { company_name?: string | null }).company_name
+        if (companyName) {
+          const { data: found } = await adminClient
+            .from('companies')
+            .select('id')
+            .ilike('name', companyName)
+            .limit(1)
+            .single()
+          if (found) {
+            update.company_id = (found as { id: string }).id
+          } else {
+            const { data: created } = await adminClient
+              .from('companies')
+              .insert({ name: companyName, slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Math.random().toString(36).slice(2, 6) })
+              .select('id')
+              .single()
+            if (created) update.company_id = (created as { id: string }).id
+          }
+        }
+      }
     }
 
     if ((stage as { is_lost: boolean }).is_lost) {

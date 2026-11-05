@@ -9,13 +9,15 @@ interface ModalProps {
   description?: string;
   children: ReactNode;
   onClose: () => void;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
 const sizeMap = {
-  sm: "max-w-sm",
-  md: "max-w-md",
-  lg: "max-w-lg",
+  sm:  "max-w-sm",
+  md:  "max-w-md",
+  lg:  "max-w-lg",
+  xl:  "max-w-xl",
+  "2xl": "max-w-2xl",
 };
 
 export function Modal({ open, title, description, children, onClose, size = "md" }: ModalProps) {

@@ -41,9 +41,9 @@ export default function ClientsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Active Clients</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Won Customers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Clients created automatically from won prospects.
+          Customers created automatically when a prospect is marked Closed Won.
         </p>
       </div>
 
@@ -70,9 +70,9 @@ export default function ClientsPage() {
       ) : clients.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-[20px] border border-dashed border-border py-16 text-center">
           <Briefcase className="h-10 w-10 text-muted-foreground/40" />
-          <p className="font-medium text-foreground">No active clients yet</p>
+          <p className="font-medium text-foreground">No won customers yet</p>
           <p className="text-sm text-muted-foreground">
-            Clients are created automatically when a prospect reaches Closed Won.
+            Customers are created automatically when a prospect reaches Closed Won.
           </p>
         </div>
       ) : (

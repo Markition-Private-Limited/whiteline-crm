@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Markition CRM",
-  description: "Markition CRM workspace for sales, operations, and customer success.",
+  title: "White Line CRM",
+  description: "White Line CRM workspace for sales, operations, and customer success.",
 };
 
 export default async function RootLayout({

@@ -1,7 +1,7 @@
 export type ThemeMode = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "markition-crm-theme";
-export const THEME_COOKIE_KEY = "markition-crm-theme";
+export const THEME_STORAGE_KEY = "whiteline-crm-theme";
+export const THEME_COOKIE_KEY = "whiteline-crm-theme";
 
 export function resolveThemeMode(value?: string | null): ThemeMode {
   return value === "dark" ? "dark" : "light";

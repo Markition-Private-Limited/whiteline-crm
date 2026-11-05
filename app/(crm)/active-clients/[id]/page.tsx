@@ -108,7 +108,7 @@ export default function ClientDetailPage() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">{companyName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Active Client · Since {new Date(client.created_at).toLocaleDateString()}
+              Won Customer · Since {new Date(client.created_at).toLocaleDateString()}
             </p>
           </div>
         </div>

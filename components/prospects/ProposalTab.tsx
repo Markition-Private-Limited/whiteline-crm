@@ -147,6 +147,7 @@ export function ProposalTab({ prospectId, token, canEdit }: Props) {
   // ── Load ────────────────────────────────────────────────────────────────────
 
   React.useEffect(() => {
+    if (!token) return;
     setLoading(true);
     apiGet(`/api/prospects/${prospectId}/proposals`, token)
       .then((data) => setProposals(Array.isArray(data) ? (data as Proposal[]) : []))

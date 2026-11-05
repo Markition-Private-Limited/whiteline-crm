@@ -79,7 +79,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">Markition CRM</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">White Line CRM</p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">Dashboard</h1>
       </div>
 
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                   href="/clients"
                   className="flex items-center justify-between rounded-[18px] border border-border bg-surface-muted px-4 py-3 text-sm font-medium text-foreground hover:bg-surface-elevated transition"
                 >
-                  <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4" /> Clients</span>
+                  <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4" /> Companies</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
