@@ -23,6 +23,14 @@ export async function proxy(request: NextRequest) {
   );
 
   if (rule) {
+    // Next.js prefetch requests (background link hover/viewport prefetching) must
+    // not trigger server-side redirects. The actual navigation re-runs this check.
+    // Without this guard, prefetching sidebar admin links while the session cookie
+    // is not yet set creates a redirect loop: proxy→/login→useEffect→/dashboard→repeat.
+    if (request.headers.get("next-router-prefetch") === "1") {
+      return NextResponse.next();
+    }
+
     const token = request.cookies.get(SESSION_COOKIE)?.value;
     const ctx = token ? await getAuthContextFromToken(token) : null;
 
