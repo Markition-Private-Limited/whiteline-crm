@@ -5,10 +5,12 @@ import { logActivity } from '@/lib/activity'
 
 const PROSPECT_SELECT = `
   id, prospect_code, company_id, company_name, industry, country, city, website,
-  lead_source, name, notes, source, owner_id, priority, service_required,
+  lead_source, name, notes, source, owner_id, lead_gen_user_id, priority, service_required,
   estimated_value, currency, stage_id, probability, expected_close_date,
   loss_reason, close_date, final_amount, is_archived, created_by, updated_by,
   status, created_at, updated_at,
+  follow_up_date, follow_up_time, contact_phone, contact_email, contact_role,
+  latest_interaction, next_action, image_url,
   pipeline_stages(id, name, display_order, default_probability, is_won, is_lost),
   companies(id, name)
 `.trim()
@@ -84,6 +86,9 @@ export async function PUT(
     'lead_source', 'name', 'notes', 'priority', 'service_required',
     'estimated_value', 'currency', 'probability', 'expected_close_date',
     'loss_reason', 'close_date', 'final_amount', 'remarks',
+    'lead_gen_user_id', 'follow_up_date', 'follow_up_time',
+    'contact_phone', 'contact_email', 'contact_role',
+    'latest_interaction', 'next_action', 'image_url',
   ] as const
 
   for (const f of scalarFields) {

@@ -32,7 +32,7 @@ async function syncServerSession(accessToken: string | null) {
   }
 }
 
-export type AppRole = "super_admin" | "admin" | "bd_manager" | "bd_executive" | "viewer";
+export type AppRole = "super_admin" | "admin" | "bd_manager" | "bd_executive" | "viewer" | "lead_generation";
 
 type SessionContextValue = {
   token: string | null;
@@ -76,6 +76,7 @@ const ROLE_PERMISSIONS: Record<AppRole, string[]> = {
     "view_clients",
   ],
   viewer: ["view_dashboard", "view_prospects", "view_companies", "view_contacts"],
+  lead_generation: ["view_dashboard"],
 };
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {

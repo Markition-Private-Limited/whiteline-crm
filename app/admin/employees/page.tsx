@@ -27,6 +27,7 @@ const ROLE_OPTIONS = [
   { value: "BD Manager", label: "BD Manager" },
   { value: "Administrator", label: "Administrator" },
   { value: "Viewer", label: "Viewer" },
+  { value: "Lead Generation", label: "Lead Generation" },
   // SuperAdministrator is not assignable through this UI
 ];
 

@@ -4,7 +4,7 @@ import pg from 'pg'
 
 // Roles admin can create — name must match app_roles.name exactly (case-insensitive lookup)
 // SuperAdministrator is intentionally excluded — only the system can assign that role
-const ALLOWED_ROLE_NAMES = ['BD Executive', 'BD Manager', 'Administrator', 'Viewer']
+const ALLOWED_ROLE_NAMES = ['BD Executive', 'BD Manager', 'Administrator', 'Viewer', 'Lead Generation']
 
 // Direct postgres pool â€” bypasses PostgREST so auth.users is visible in the same session.
 // This avoids the FK cross-connection visibility issue when inserting into user_roles

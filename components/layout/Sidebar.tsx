@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ChevronLeft, ChevronRight, Home,
-  Building2, Briefcase, Target, X, Users, Layers, FileText,
+  Building2, Briefcase, Target, X, Users, Layers, FileText, UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSessionProvider, type AppRole } from "@/src/providers/SessionProvider";
@@ -15,7 +15,7 @@ type NavItem = { label: string; href: string; icon: React.ElementType; roles: Ap
 type NavSection = { heading: string; items: NavItem[] };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard",      href: "/dashboard",       icon: Home,          roles: ["super_admin", "admin", "bd_manager", "bd_executive", "viewer"] },
+  { label: "Dashboard",      href: "/dashboard",       icon: Home,          roles: ["super_admin", "admin", "bd_manager", "bd_executive", "viewer", "lead_generation"] },
   { label: "Companies",      href: "/clients",         icon: Building2,     roles: ["super_admin", "admin", "bd_manager"] },
   { label: "Prospects",      href: "/prospects",       icon: Target,        roles: ["super_admin", "admin", "bd_manager", "bd_executive", "viewer"] },
   { label: "Won Customers",  href: "/active-clients",  icon: Briefcase,     roles: ["super_admin", "admin", "bd_manager", "bd_executive"] },
@@ -25,9 +25,10 @@ const NAV_SECTIONS: NavSection[] = [
   {
     heading: "Admin",
     items: [
-      { label: "Employees",           href: "/admin/employees",             icon: Users,     roles: ["super_admin", "admin"] },
-      { label: "Pipeline Stages",     href: "/admin/pipeline-stages",       icon: Layers,    roles: ["super_admin", "admin"] },
-      { label: "Document Templates",  href: "/admin/document-templates",    icon: FileText,  roles: ["super_admin", "admin"] },
+      { label: "Employees",           href: "/admin/employees",             icon: Users,      roles: ["super_admin", "admin"] },
+      { label: "Teams",               href: "/admin/teams",                 icon: UsersRound, roles: ["super_admin", "admin"] },
+      { label: "Pipeline Stages",     href: "/admin/pipeline-stages",       icon: Layers,     roles: ["super_admin", "admin"] },
+      { label: "Document Templates",  href: "/admin/document-templates",    icon: FileText,   roles: ["super_admin", "admin"] },
     ],
   },
 ];

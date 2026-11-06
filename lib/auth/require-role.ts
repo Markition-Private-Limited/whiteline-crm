@@ -1,12 +1,13 @@
 import { adminClient } from '@/lib/supabase/admin'
 
-// Five BRD roles — matches app_roles.name in the DB
+// Six BRD roles — matches app_roles.name in the DB
 export type AppRole =
   | 'super_admin'
   | 'admin'
   | 'bd_manager'
   | 'bd_executive'
   | 'viewer'
+  | 'lead_generation'
 
 // Maps DB role names (lowercase) → AppRole enum value.
 // Includes legacy names so any residual old-role users still resolve correctly.
@@ -17,6 +18,7 @@ const ROLE_MAP: Record<string, AppRole> = {
   'bd manager':         'bd_manager',
   'bd executive':       'bd_executive',
   'viewer':             'viewer',
+  'lead generation':    'lead_generation',
   // Legacy fallbacks (kept until all rows are migrated)
   'super admin':        'super_admin',
   'admin':              'admin',

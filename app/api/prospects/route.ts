@@ -5,10 +5,12 @@ import { logActivity } from '@/lib/activity'
 
 const PROSPECT_SELECT = `
   id, prospect_code, company_id, company_name, industry, country, city, website,
-  lead_source, name, notes, source, owner_id, priority, service_required,
+  lead_source, name, notes, source, owner_id, lead_gen_user_id, priority, service_required,
   estimated_value, currency, stage_id, probability, expected_close_date,
   loss_reason, close_date, final_amount, is_archived, created_by, updated_by,
   status, created_at, updated_at,
+  follow_up_date, follow_up_time, contact_phone, contact_email, contact_role,
+  latest_interaction, next_action, image_url,
   pipeline_stages(id, name, display_order, default_probability, is_won, is_lost),
   companies(id, name)
 `.trim()
@@ -40,6 +42,11 @@ export async function GET(request: Request) {
     .select(PROSPECT_SELECT)
     .eq('is_archived', archived)
     .order('created_at', { ascending: false })
+
+  // lead_generation users have no prospect access
+  if (ctx.role === 'lead_generation') {
+    return Response.json([])
+  }
 
   // Role-based scoping
   if (ctx.role === 'bd_executive') {
@@ -78,8 +85,8 @@ export async function POST(request: Request) {
   const { ctx, error } = await requireAuth(request)
   if (error) return error
 
-  // Viewer cannot create. BD Executive needs add_prospects permission.
-  if (ctx.role === 'viewer') return Response.json({ error: 'Forbidden' }, { status: 403 })
+  // Viewer and lead_generation cannot create. BD Executive needs add_prospects permission.
+  if (ctx.role === 'viewer' || ctx.role === 'lead_generation') return Response.json({ error: 'Forbidden' }, { status: 403 })
   if (ctx.role === 'bd_executive') {
     const allowed = await userHasPermission(ctx.userId, 'add_prospects')
     if (!allowed) return Response.json({ error: 'Forbidden' }, { status: 403 })
@@ -88,9 +95,11 @@ export async function POST(request: Request) {
   const body = await request.json()
   const {
     company_id, company_name, industry, country, city, website,
-    lead_source, name, notes, source, owner_id, priority,
+    lead_source, name, notes, source, owner_id, lead_gen_user_id, priority,
     service_required, estimated_value, currency, stage_id, probability,
     expected_close_date, remarks,
+    follow_up_date, follow_up_time, contact_phone, contact_email, contact_role,
+    latest_interaction, next_action, image_url,
     skip_duplicate_check,
   } = body
 
@@ -193,14 +202,23 @@ export async function POST(request: Request) {
       name:                name?.trim() || null,
       notes:               notes ?? remarks ?? null,
       source:              source      ?? null,
-      owner_id:            owner_id    ?? ctx.userId,
-      priority:            priority    ?? 'medium',
+      owner_id:            owner_id         ?? ctx.userId,
+      lead_gen_user_id:    lead_gen_user_id ?? null,
+      priority:            priority         ?? 'medium',
       service_required:    service_required ?? null,
       estimated_value:     estimated_value  ?? null,
       currency:            currency ?? 'USD',
       stage_id:            resolvedStageId,
       probability:         resolvedProbability,
       expected_close_date: expected_close_date ?? null,
+      follow_up_date:      follow_up_date   ?? null,
+      follow_up_time:      follow_up_time   ?? null,
+      contact_phone:       contact_phone    ?? null,
+      contact_email:       contact_email    ?? null,
+      contact_role:        contact_role     ?? null,
+      latest_interaction:  latest_interaction ?? null,
+      next_action:         next_action      ?? null,
+      image_url:           image_url        ?? null,
       is_archived:         false,
       created_by:          ctx.userId,
       updated_by:          ctx.userId,
