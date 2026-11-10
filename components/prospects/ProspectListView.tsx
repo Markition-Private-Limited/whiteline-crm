@@ -223,9 +223,19 @@ function addDays(days: number): string {
   return d.toISOString().split("T")[0];
 }
 
+// Overdue = the combined date+time moment is strictly in the past.
+// No time set → treat as 23:59 (only overdue once the whole day has passed).
+function prospectIsOverdue(follow_up_date: string | null, follow_up_time: string | null): boolean {
+  if (!follow_up_date) return false;
+  // Normalize to HH:MM — DB returns HH:MM:SS; appending :00 to that gives an invalid datetime.
+  const time = (follow_up_time || "23:59").slice(0, 5);
+  return new Date(`${follow_up_date}T${time}:00`) < new Date();
+}
+
 // ── Kanban card ───────────────────────────────────────────────────────────────
 
-function KanbanCard({ p, onDragStart, today }: { p: Prospect; onDragStart: () => void; today: string }) {
+function KanbanCard({ p, onDragStart }: { p: Prospect; onDragStart: () => void }) {
+  const isOverdue = prospectIsOverdue(p.follow_up_date, p.follow_up_time);
   return (
     <Link href={`/prospects/${p.id}`} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(); }}>
       <div className="cursor-grab active:cursor-grabbing rounded-[14px] border border-border bg-surface p-3 shadow-sm shadow-black/5 hover:border-foreground/20 transition space-y-2">
@@ -237,7 +247,7 @@ function KanbanCard({ p, onDragStart, today }: { p: Prospect; onDragStart: () =>
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="font-mono">{p.prospect_code}</span>
           {p.follow_up_date && (
-            <span className={`flex items-center gap-0.5 ${p.follow_up_date < today ? "text-danger" : ""}`}>
+            <span className={`flex items-center gap-0.5 ${isOverdue ? "text-danger" : ""}`}>
               <Calendar className="h-3 w-3" />{new Date(p.follow_up_date + "T00:00:00").toLocaleDateString()}
             </span>
           )}
@@ -257,6 +267,7 @@ interface ProspectListViewProps {
 }
 
 export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
+  "use no memo";
   const { token, appRole } = useSessionProvider();
   const [view, setView] = React.useState<"table" | "kanban" | "team">("table");
 
@@ -295,8 +306,8 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
   const canCreate = appRole === "super_admin" || appRole === "admin" || appRole === "bd_manager" || appRole === "bd_executive";
   const canManage = appRole === "super_admin" || appRole === "admin" || appRole === "bd_manager";
 
-  const today = new Date().toISOString().split("T")[0];
-  const in3Days = new Date(Date.now() + 3 * 86_400_000).toISOString().split("T")[0];
+  const today = React.useMemo(() => new Date().toISOString().split("T")[0], []);
+  const in3Days = React.useMemo(() => new Date(Date.now() + 3 * 86_400_000).toISOString().split("T")[0], []);
 
   // ── Load data ────────────────────────────────────────────────────────────
   const load = React.useCallback(() => {
@@ -426,7 +437,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
   const filtered = React.useMemo(() => {
     let list = prospects;
     if (priorityFilter !== "all") list = list.filter((p) => p.priority === priorityFilter);
-    if (dateFilter === "overdue")   list = list.filter((p) => p.follow_up_date && p.follow_up_date < today);
+    if (dateFilter === "overdue")   list = list.filter((p) => prospectIsOverdue(p.follow_up_date, p.follow_up_time));
     if (dateFilter === "today")     list = list.filter((p) => p.follow_up_date === today);
     if (dateFilter === "soon")      list = list.filter((p) => p.follow_up_date && p.follow_up_date >= today && p.follow_up_date <= in3Days);
     if (dateFilter === "has_date")  list = list.filter((p) => !!p.follow_up_date);
@@ -442,8 +453,8 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
   const teamStats = React.useMemo(() => {
     return bdUsers.map((u) => {
       const mine = prospects.filter((p) => p.owner_id === u.id);
-      const withFollowUp = mine.filter((p) => p.follow_up_date && p.follow_up_date >= today);
-      const overdue = mine.filter((p) => p.follow_up_date && p.follow_up_date < today);
+      const withFollowUp = mine.filter((p) => p.follow_up_date && !prospectIsOverdue(p.follow_up_date, p.follow_up_time));
+      const overdue = mine.filter((p) => prospectIsOverdue(p.follow_up_date, p.follow_up_time));
       return { user: u, total: mine.length, followUps: withFollowUp.length, overdue: overdue.length };
     });
   }, [bdUsers, prospects]);
@@ -588,7 +599,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
                 {filtered.map((p) => {
                   const isWon  = p.pipeline_stages?.is_won;
                   const isLost = p.pipeline_stages?.is_lost;
-                  const isOverdue = p.follow_up_date && p.follow_up_date < today;
+                  const isOverdue = prospectIsOverdue(p.follow_up_date, p.follow_up_time);
                   return (
                     <tr key={p.id} className="bg-surface hover:bg-surface-muted transition">
                       <td className="px-4 py-3">
@@ -645,7 +656,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
                   <div className="flex flex-col gap-2 px-2 pb-3 overflow-y-auto max-h-[calc(100vh-280px)]">
                     {cards.map((p) => (
                       <div key={p.id} className={movingId === p.id ? "opacity-40" : ""}>
-                        <KanbanCard p={p} today={today} onDragStart={() => setDraggingId(p.id)} />
+                        <KanbanCard p={p} onDragStart={() => setDraggingId(p.id)} />
                       </div>
                     ))}
                     {cards.length === 0 && (
