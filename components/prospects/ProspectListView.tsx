@@ -225,7 +225,7 @@ function addDays(days: number): string {
 
 // ── Kanban card ───────────────────────────────────────────────────────────────
 
-function KanbanCard({ p, onDragStart }: { p: Prospect; onDragStart: () => void }) {
+function KanbanCard({ p, onDragStart, today }: { p: Prospect; onDragStart: () => void; today: string }) {
   return (
     <Link href={`/prospects/${p.id}`} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(); }}>
       <div className="cursor-grab active:cursor-grabbing rounded-[14px] border border-border bg-surface p-3 shadow-sm shadow-black/5 hover:border-foreground/20 transition space-y-2">
@@ -237,8 +237,8 @@ function KanbanCard({ p, onDragStart }: { p: Prospect; onDragStart: () => void }
         <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="font-mono">{p.prospect_code}</span>
           {p.follow_up_date && (
-            <span className={`flex items-center gap-0.5 ${new Date(p.follow_up_date) < new Date() ? "text-danger" : ""}`}>
-              <Calendar className="h-3 w-3" />{new Date(p.follow_up_date).toLocaleDateString()}
+            <span className={`flex items-center gap-0.5 ${p.follow_up_date < today ? "text-danger" : ""}`}>
+              <Calendar className="h-3 w-3" />{new Date(p.follow_up_date + "T00:00:00").toLocaleDateString()}
             </span>
           )}
         </div>
@@ -294,6 +294,9 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
 
   const canCreate = appRole === "super_admin" || appRole === "admin" || appRole === "bd_manager" || appRole === "bd_executive";
   const canManage = appRole === "super_admin" || appRole === "admin" || appRole === "bd_manager";
+
+  const today = new Date().toISOString().split("T")[0];
+  const in3Days = new Date(Date.now() + 3 * 86_400_000).toISOString().split("T")[0];
 
   // ── Load data ────────────────────────────────────────────────────────────
   const load = React.useCallback(() => {
@@ -421,8 +424,6 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
 
   // ── Filtered prospects ────────────────────────────────────────────────────
   const filtered = React.useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    const in3Days = new Date(Date.now() + 3 * 86_400_000).toISOString().split("T")[0];
     let list = prospects;
     if (priorityFilter !== "all") list = list.filter((p) => p.priority === priorityFilter);
     if (dateFilter === "overdue")   list = list.filter((p) => p.follow_up_date && p.follow_up_date < today);
@@ -430,7 +431,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
     if (dateFilter === "soon")      list = list.filter((p) => p.follow_up_date && p.follow_up_date >= today && p.follow_up_date <= in3Days);
     if (dateFilter === "has_date")  list = list.filter((p) => !!p.follow_up_date);
     return list;
-  }, [prospects, priorityFilter, dateFilter]);
+  }, [prospects, priorityFilter, dateFilter, today, in3Days]);
 
   // ── BD Executives/Managers for team view ─────────────────────────────────
   const bdUsers = users.filter((u) => {
@@ -441,8 +442,8 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
   const teamStats = React.useMemo(() => {
     return bdUsers.map((u) => {
       const mine = prospects.filter((p) => p.owner_id === u.id);
-      const withFollowUp = mine.filter((p) => p.follow_up_date && new Date(p.follow_up_date) >= new Date());
-      const overdue = mine.filter((p) => p.follow_up_date && new Date(p.follow_up_date) < new Date());
+      const withFollowUp = mine.filter((p) => p.follow_up_date && p.follow_up_date >= today);
+      const overdue = mine.filter((p) => p.follow_up_date && p.follow_up_date < today);
       return { user: u, total: mine.length, followUps: withFollowUp.length, overdue: overdue.length };
     });
   }, [bdUsers, prospects]);
@@ -587,7 +588,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
                 {filtered.map((p) => {
                   const isWon  = p.pipeline_stages?.is_won;
                   const isLost = p.pipeline_stages?.is_lost;
-                  const isOverdue = p.follow_up_date && new Date(p.follow_up_date) < new Date();
+                  const isOverdue = p.follow_up_date && p.follow_up_date < today;
                   return (
                     <tr key={p.id} className="bg-surface hover:bg-surface-muted transition">
                       <td className="px-4 py-3">
@@ -608,7 +609,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_COLORS[p.priority] ?? PRIORITY_COLORS.medium}`}>{p.priority}</span>
                       </td>
                       <td className={`px-4 py-3 text-xs hidden lg:table-cell ${isOverdue ? "text-danger font-medium" : "text-muted-foreground"}`}>
-                        {p.follow_up_date ? new Date(p.follow_up_date).toLocaleDateString() : "—"}
+                        {p.follow_up_date ? new Date(p.follow_up_date + "T00:00:00").toLocaleDateString() : "—"}
                       </td>
                       <td className="px-4 py-3 text-right text-xs text-muted-foreground font-medium hidden xl:table-cell">
                         {p.estimated_value != null ? `${p.currency} ${p.estimated_value.toLocaleString()}` : "—"}
@@ -644,7 +645,7 @@ export function ProspectListView({ showHeader = true }: ProspectListViewProps) {
                   <div className="flex flex-col gap-2 px-2 pb-3 overflow-y-auto max-h-[calc(100vh-280px)]">
                     {cards.map((p) => (
                       <div key={p.id} className={movingId === p.id ? "opacity-40" : ""}>
-                        <KanbanCard p={p} onDragStart={() => setDraggingId(p.id)} />
+                        <KanbanCard p={p} today={today} onDragStart={() => setDraggingId(p.id)} />
                       </div>
                     ))}
                     {cards.length === 0 && (
