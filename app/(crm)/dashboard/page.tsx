@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useSessionProvider } from "@/src/providers/SessionProvider";
 import { apiGet } from "@/lib/api";
+import { ProspectListView } from "@/components/prospects/ProspectListView";
 
 type KPIs = {
   total_prospects: number;
@@ -177,13 +178,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Empty state when all clear */}
+      {/* All-clear state */}
       {!loading && overdue.length === 0 && (
         <div className="flex items-center gap-3 rounded-[16px] border border-border bg-surface-muted px-5 py-4">
           <TrendingUp className="h-5 w-5 text-emerald-500" />
           <p className="text-sm text-muted-foreground">No overdue follow-ups. You&apos;re on track.</p>
         </div>
       )}
+
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Prospect list — full filter bar + table/pipeline/team views */}
+      <ProspectListView showHeader={false} />
     </div>
   );
 }
