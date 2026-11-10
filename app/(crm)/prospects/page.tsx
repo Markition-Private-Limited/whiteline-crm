@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { Select } from "@/components/ui/select";
 import { useSessionProvider } from "@/src/providers/SessionProvider";
 import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/api";
 
@@ -268,6 +269,7 @@ export default function ProspectsPage() {
   const [stageFilter, setStageFilter] = React.useState("all");
   const [priorityFilter, setPriorityFilter] = React.useState("all");
   const [ownerFilter, setOwnerFilter] = React.useState("all");
+  const [dateFilter, setDateFilter] = React.useState("all");
   const [showArchived, setShowArchived] = React.useState(false);
 
   // UI state
@@ -417,10 +419,16 @@ export default function ProspectsPage() {
 
   // ── Filtered prospects ────────────────────────────────────────────────────
   const filtered = React.useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const in3Days = new Date(Date.now() + 3 * 86_400_000).toISOString().split("T")[0];
     let list = prospects;
     if (priorityFilter !== "all") list = list.filter((p) => p.priority === priorityFilter);
+    if (dateFilter === "overdue")   list = list.filter((p) => p.follow_up_date && p.follow_up_date < today);
+    if (dateFilter === "today")     list = list.filter((p) => p.follow_up_date === today);
+    if (dateFilter === "soon")      list = list.filter((p) => p.follow_up_date && p.follow_up_date >= today && p.follow_up_date <= in3Days);
+    if (dateFilter === "has_date")  list = list.filter((p) => !!p.follow_up_date);
     return list;
-  }, [prospects, priorityFilter]);
+  }, [prospects, priorityFilter, dateFilter]);
 
   // ── BD Executives/Managers for team view ─────────────────────────────────
   const bdUsers = users.filter((u) => {
@@ -463,25 +471,54 @@ export default function ProspectsPage() {
         </div>
 
         {/* Stage filter */}
-        <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className="h-9 rounded-[14px] border border-border bg-background px-3 text-sm focus:border-accent focus:outline-none">
-          <option value="all">All Stages</option>
-          {stages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+        <Select
+          value={stageFilter}
+          onChange={setStageFilter}
+          className="w-36"
+          options={[
+            { value: "all", label: "All Stages" },
+            ...stages.map((s) => ({ value: s.id, label: s.name })),
+          ]}
+        />
 
         {/* Priority filter */}
-        <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} className="h-9 rounded-[14px] border border-border bg-background px-3 text-sm focus:border-accent focus:outline-none">
-          <option value="all">All Priorities</option>
-          {PRIORITIES.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
-        </select>
+        <Select
+          value={priorityFilter}
+          onChange={setPriorityFilter}
+          className="w-36"
+          options={[
+            { value: "all", label: "All Priorities" },
+            ...PRIORITIES.map((p) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) })),
+          ]}
+        />
+
+        {/* Date filter */}
+        <Select
+          value={dateFilter}
+          onChange={setDateFilter}
+          className="w-44"
+          options={[
+            { value: "all",      label: "All Dates" },
+            { value: "overdue",  label: "Overdue Follow-ups" },
+            { value: "today",    label: "Due Today" },
+            { value: "soon",     label: "Soon (next 3 days)" },
+            { value: "has_date", label: "Has Follow-up Date" },
+          ]}
+        />
 
         {/* Team member filter (managers/admins only) */}
         {canManage && (
-          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} className="h-9 rounded-[14px] border border-border bg-background px-3 text-sm focus:border-accent focus:outline-none">
-            <option value="all">All BD Members</option>
-            {users.filter((u) => { const r = (u.role ?? "").toLowerCase(); return r.includes("bd"); }).map((u) => (
-              <option key={u.id} value={u.id}>{u.email}</option>
-            ))}
-          </select>
+          <Select
+            value={ownerFilter}
+            onChange={setOwnerFilter}
+            className="w-44"
+            options={[
+              { value: "all", label: "All BD Members" },
+              ...users
+                .filter((u) => { const r = (u.role ?? "").toLowerCase(); return r.includes("bd"); })
+                .map((u) => ({ value: u.id, label: u.email })),
+            ]}
+          />
         )}
 
         {/* Archived toggle */}
